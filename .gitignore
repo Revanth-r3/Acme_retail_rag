@@ -1,0 +1,40 @@
+# Python
+
+**pycache**/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+
+.venv/
+.venv_old/
+
+# Environment variables / secrets
+
+.env
+
+# Local vector database
+
+chroma_db/
+
+# Uploaded / local data
+
+data/
+
+# Streamlit
+
+.streamlit/
+
+# IDE / editor
+
+.vscode/
+.idea/
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Logs
+
+*.log

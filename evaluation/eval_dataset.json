@@ -1,0 +1,86 @@
+[
+  {
+    "id": "eval_01",
+    "question": "What was the revenue of the South region?",
+    "expected_answer": "4.2M",
+    "acceptable_sources": [
+      {
+        "source": "data/q1_business_review.pptx",
+        "slide": 6
+      },
+      {
+        "source": "data/sales_q1.xlsx",
+        "sheet": "Regional Sales",
+        "row": 3
+      }
+    ],
+    "required_all_sources": false,
+    "answerable": true
+  },
+  {
+    "id": "eval_02",
+    "question": "What was the customer growth during Q1?",
+    "expected_answer": "12%",
+    "acceptable_sources": [
+      {
+        "source": "data/q1_business_review.pptx",
+        "slide": 3
+      }
+    ],
+    "required_all_sources": true,
+    "answerable": true
+  },
+  {
+    "id": "eval_03",
+    "question": "Which product generated the highest revenue?",
+    "expected_answer": "Laptop",
+    "acceptable_sources": [
+      {
+        "source": "data/q1_business_review.pptx",
+        "slide": 4
+      }
+    ],
+    "required_all_sources": true,
+    "answerable": true
+  },
+  {
+    "id": "eval_04",
+    "question": "What was the South region revenue and how much of the target did it achieve?",
+    "expected_answer": "4.2M and 105%",
+    "required_sources": [
+        {
+        "source": "data/q1_business_review.pptx",
+        "slide": 6
+        }
+    ],
+    "acceptable_sources": [
+        {
+        "source": "data/q1_business_review.pptx",
+        "slide": 6
+        },
+        {
+        "source": "data/sales_q1.xlsx",
+        "sheet": "Regional Sales",
+        "row": 3
+        }
+    ],
+    "required_all_sources": true,
+    "answerable": true
+  },
+  {
+    "id": "eval_05",
+    "question": "What was the employee attrition rate?",
+    "expected_answer": null,
+    "acceptable_sources": [],
+    "required_all_sources": false,
+    "answerable": false
+  },
+  {
+    "id": "eval_06",
+    "question": "What was the Q1 profit margin?",
+    "expected_answer": null,
+    "acceptable_sources": [],
+    "required_all_sources": false,
+    "answerable": false
+  }
+]
