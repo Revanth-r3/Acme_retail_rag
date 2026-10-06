@@ -266,7 +266,7 @@ Top-K = 3
 Maximum distance = 0.8
 ```
 
-The threshold was selected using the project's small evaluation dataset.
+The threshold was empirically configured and validated against the project's small evaluation dataset
 
 ---
 
@@ -619,7 +619,7 @@ The prototype uses local Llama 3.2 through Ollama. Production inference may requ
 
 ### Security
 
-The application is an interview/demo prototype and does not implement the full security controls required for a production multi-user system.
+The application is an interview demo prototype and does not implement the full security controls required for a production multi-user system.
 
 ---
 
@@ -691,26 +691,75 @@ User
 
 ## 23. Installation
 
-Create a virtual environment:
+### Prerequisites
+
+The project is currently tested with:
+
+* Python 3.11.x
+* CPU-based PyTorch
+* Ollama
+* LibreOffice — required only for legacy `.ppt` file support
+
+### Create a virtual environment
 
 ```powershell
 python -m venv .venv
+```
+
+Activate the virtual environment:
+
+```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+### Install Python dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
+The `requirements.txt` file includes the dependencies required for:
+
+* Excel (`.xlsx` / `.xls`) parsing
+* CSV parsing
+* PowerPoint (`.pptx`) parsing
+* Sentence Transformer embeddings
+* PyTorch CPU inference
+* ChromaDB
+* Ollama client
+* Streamlit
+
 The project is currently configured for CPU-based PyTorch.
+
+### Sentence Transformer model
+
+The project uses:
+
+```text
+all-MiniLM-L6-v2
+```
+
+through the `sentence-transformers` library.
+
+The model generates 384-dimensional embeddings for document chunks and user queries.
+
+On the first run, Sentence Transformers may download the model weights if they are not already available in the local cache. An internet connection may therefore be required during the first model initialization.
 
 ---
 
 ## 24. Ollama Setup
 
-Install Ollama and make sure the required model is available:
+The project uses Ollama to run the local Llama 3.2 model.
+
+Install Ollama separately from the Python dependencies.
+
+After installation, download the required model:
+
+```powershell
+ollama pull llama3.2:latest
+```
+
+Verify that the model is available:
 
 ```powershell
 ollama list
@@ -722,27 +771,51 @@ The project currently uses:
 llama3.2:latest
 ```
 
-If required, start the Ollama server:
+If the Ollama server is not already running, start it with:
 
 ```powershell
 ollama serve
 ```
 
+The Python application communicates with the local Ollama server for answer generation and LLM-based evaluation.
+
 ---
 
-## 25. Initialize Document Tracker
+## 25. LibreOffice Setup
 
-Run:
+LibreOffice is required only when processing legacy PowerPoint `.ppt` files.
+
+The project uses LibreOffice in headless mode to convert:
+
+```text
+.ppt → temporary .pptx
+```
+
+The converted presentation is then parsed using `python-pptx`.
+
+Install LibreOffice separately and ensure the `soffice` executable is available at the configured path or through the system `PATH`.
+
+If you only use `.pptx` files, LibreOffice is not required.
+
+---
+
+## 26. Initialize Document Tracker
+
+The project uses a SHA-256 based document tracker to determine whether a document is new, unchanged, or modified.
+
+Initialize the tracker with:
 
 ```powershell
 python -m scripts.initialize_tracker
 ```
 
+This allows unchanged documents to be skipped during subsequent indexing instead of being unnecessarily re-embedded.
+
 ---
 
-## 26. Run the Application
+## 27. Run the Application
 
-Start Streamlit:
+Start the Streamlit application:
 
 ```powershell
 streamlit run app.py
@@ -750,14 +823,29 @@ streamlit run app.py
 
 The application provides:
 
-1. document upload
-2. document indexing
-3. natural-language question answering
-4. source traceability
+1. Document upload
+2. Document indexing
+3. Natural-language question answering
+4. Source traceability
 
-The Streamlit configuration limits each uploaded file to 200 MB.
+Supported upload formats:
 
----
+```text
+.xlsx
+.xls
+.csv
+.pptx
+.ppt
+```
+
+The Streamlit configuration limits each uploaded file to **200 MB**.
+
+### First-run note
+
+The first application startup may take longer because the Sentence Transformer embedding model needs to be loaded, and the model may need to be downloaded if it is not already cached locally.
+
+After startup, users can upload documents, index them, and ask questions through the Streamlit interface.
+
 
 ## 27. Summary
 
