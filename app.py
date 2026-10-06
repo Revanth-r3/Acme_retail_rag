@@ -61,8 +61,8 @@ rag = load_rag_service(embedding_model)
 st.subheader("Upload Documents")
 
 uploaded_files = st.file_uploader(
-    "Upload Excel, CSV, or PowerPoint (.pptx) files",
-    type=["xlsx", "xls", "csv", "pptx"],
+    "Upload Excel, CSV, or PowerPoint (.ppt, .pptx) files",
+    type=["xlsx", "xls", "csv", "ppt", "pptx"],
     accept_multiple_files=True
 )
 

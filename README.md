@@ -1,115 +1,79 @@
-# Multi-Format RAG Document Chatbot
+# Acme Retail RAG Assistant
 
-A modular Retrieval-Augmented Generation (RAG) chatbot that allows users to upload and query business documents in multiple formats, including Excel, CSV, and PowerPoint.
+A modular, multi-format Retrieval-Augmented Generation (RAG) application for asking grounded questions across retail business documents.
 
-The project is designed as an interview-ready AI/ML engineering prototype demonstrating document ingestion, metadata-aware chunking, embeddings, vector search, grounded LLM generation, incremental indexing, source traceability, evaluation, and a Streamlit interface.
+The project supports Excel, CSV, and PowerPoint documents, converts their content into a common chunk representation, stores embeddings in ChromaDB, retrieves relevant evidence, and generates answers using a local Llama 3.2 model through Ollama.
 
----
-
-## 1. Use Case
-
-The chatbot is designed for a fictional **Acme Retail** business environment.
-
-Example business documents contain information such as:
-
-* Quarterly business reviews
-* Regional sales
-* Revenue and sales targets
-* Customer growth
-* Product performance
-* Business risks
-* Customer-level sales data
-
-Users can upload multiple documents and ask questions across them.
-
-Example questions:
-
-* What was the revenue of the South region?
-* Which product generated the highest revenue?
-* What was the customer growth during Q1?
-* What was the South region revenue and how much of the target did it achieve?
-* What was the employee attrition rate?
-
-The system should answer only when sufficient evidence exists in the indexed documents.
+> **Project status:** demo-ready prototype. Core functional RAG tests: **6/6 passed**.
 
 ---
 
-# 2. Features
+## 1. Problem Statement
 
-* Multi-format document ingestion
-* Excel (`.xlsx`, `.xls`) parsing
-* CSV parsing
-* PowerPoint (`.pptx`) parsing
-* Common `DocumentChunk` representation
-* Metadata preservation
-* Sentence-transformer embeddings
-* ChromaDB vector storage
-* Top-K similarity retrieval
-* Configurable retrieval distance threshold
-* Local LLM generation using Ollama
-* Grounded answer generation
-* Explicit no-answer behavior
-* Source/file traceability
-* Slide, sheet, and row metadata
-* Multi-document question answering
-* Incremental document indexing
-* SHA-256 document change detection
-* Changed-document replacement
-* Streamlit upload and Q&A interface
-* Automated functional tests
-* Custom RAG evaluation suite
-* Retrieval latency and generation latency logging
+Build a document-question-answering assistant that can:
+
+- ingest Excel (`.xlsx`, `.xls`), CSV, and PowerPoint (`.ppt`, `.pptx`) files
+- extract text and tabular content
+- normalize extracted content into a common representation
+- generate embeddings
+- store and retrieve document chunks from a vector database
+- generate answers grounded only in retrieved documents
+- provide source references such as slide, sheet, and row
+- support multiple uploaded documents
+- skip unchanged documents during re-indexing
+- provide a simple upload and Q&A interface
 
 ---
 
-# 3. Architecture
+## 2. Architecture
 
 ```text
-                     ┌──────────────────────┐
-                     │     Streamlit UI     │
-                     │ Upload + Questioning │
-                     └──────────┬───────────┘
-                                │
-                 ┌──────────────┴──────────────┐
-                 │                             │
-                 ▼                             ▼
-        ┌─────────────────┐          ┌─────────────────┐
-        │ Document Upload │          │ User Question   │
-        └────────┬────────┘          └────────┬────────┘
-                 │                            │
-                 ▼                            ▼
-        ┌─────────────────┐          ┌─────────────────┐
-        │ Format Parser   │          │ Query Embedding │
-        │ Excel / CSV /   │          └────────┬────────┘
-        │ PowerPoint      │                   │
-        └────────┬────────┘                   ▼
-                 │                    ┌─────────────────┐
-                 ▼                    │ ChromaDB Search │
-        ┌─────────────────┐           └────────┬────────┘
-        │ DocumentChunk   │                    │
-        │ + Metadata      │                    ▼
-        └────────┬────────┘           ┌─────────────────┐
-                 │                    │ Relevant Chunks │
-                 ▼                    └────────┬────────┘
-        ┌─────────────────┐                    │
-        │ Embedding Model │                    ▼
-        │ MiniLM          │           ┌─────────────────┐
-        └────────┬────────┘           │ Ollama / Llama  │
-                 │                    │ 3.2 Generation  │
-                 ▼                    └────────┬────────┘
-        ┌─────────────────┐                    │
-        │ ChromaDB        │                    ▼
-        │ Persistent DB   │           ┌─────────────────┐
-        └─────────────────┘           │ Answer + Sources│
-                                      └─────────────────┘
+                 ┌─────────────────────┐
+                 │   Streamlit UI      │
+                 │ Upload + Q&A        │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ Document Ingestion  │
+                 │ Excel / CSV / PPT   │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ Common Chunk Model  │
+                 │ Text + Metadata     │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ SentenceTransformer │
+                 │ all-MiniLM-L6-v2    │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │     ChromaDB        │
+                 │ Persistent Vector DB│
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ Semantic Retrieval  │
+                 │ Top-K + Threshold   │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ Ollama / Llama 3.2  │
+                 │ Grounded Generation │
+                 └──────────┬──────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │ Answer + Sources    │
+                 └─────────────────────┘
 ```
 
 ---
 
-# 4. Project Structure
+## 3. Project Structure
 
 ```text
-Use_case_Rag_chatbot/
+Acme_retail_rag/
 │
 ├── app.py
 ├── requirements.txt
@@ -117,9 +81,6 @@ Use_case_Rag_chatbot/
 ├── .gitignore
 │
 ├── data/
-│   ├── sales_q1.xlsx
-│   ├── customer_sales.csv
-│   └── q1_business_review.pptx
 │
 ├── ingestion/
 │   ├── __init__.py
@@ -150,172 +111,107 @@ Use_case_Rag_chatbot/
 │   ├── __init__.py
 │   └── test_rag.py
 │
-└── evaluation/
-    ├── __init__.py
-    ├── eval_dataset.json
-    └── evaluate_rag.py
+├── evaluation/
+│   ├── __init__.py
+│   ├── eval_dataset.json
+│   └── evaluate_rag.py
+│
+└── .streamlit/
+    └── config.toml
 ```
-
-`chroma_db/` is created locally at runtime and is excluded from Git through `.gitignore`.
 
 ---
 
-# 5. End-to-End Flow
+## 4. Supported Formats
+
+| Format | Support | Extraction |
+|---|---|---|
+| `.xlsx` | Yes | Sheet rows/cells |
+| `.xls` | Yes | Legacy Excel rows/cells |
+| `.csv` | Yes | CSV rows |
+| `.pptx` | Yes | Slide text, tables, notes, title |
+| `.ppt` | Yes | Converted to temporary `.pptx`, then parsed |
+
+### PowerPoint `.ppt` handling
+
+Legacy `.ppt` files are converted to `.pptx` using LibreOffice in headless mode. The converted file is temporary and removed after parsing.
+
+PowerPoint visual-only content such as images, scanned text, charts, and SmartArt is outside the current prototype extraction scope.
+
+---
+
+## 5. Common Document Representation
+
+All parsers return a common `DocumentChunk` representation.
+
+Conceptually:
 
 ```text
-Upload Document
-      ↓
-Calculate SHA-256 Hash
-      ↓
-Check Document Tracker
-      ↓
- ┌───────────────┐
- │ Unchanged?    │
- └───────┬───────┘
-         │
-    Yes  │  No
-         │
-         ▼
-      Skip          Parse Document
-                        ↓
-                  Create Chunks
-                        ↓
-                 Generate Embeddings
-                        ↓
-                    ChromaDB
-                        ↓
-                 Store File Hash
+DocumentChunk
+├── text
+└── metadata
+    ├── source
+    ├── file_type
+    ├── slide / sheet
+    ├── row
+    └── title
 ```
 
-Question answering:
+This keeps downstream embedding, storage, retrieval, and source rendering independent of the original document format.
+
+---
+
+## 6. Ingestion
+
+### Excel
+
+- `.xlsx` is parsed with `openpyxl`
+- `.xls` is parsed with `xlrd`
+- rows are converted into text chunks
+- metadata includes sheet and row information
+
+Example:
 
 ```text
-User Question
-      ↓
-Generate Query Embedding
-      ↓
-ChromaDB Similarity Search
-      ↓
-Top-K Candidate Chunks
-      ↓
-Distance Threshold Filtering
-      ↓
-Relevant Context
-      ↓
-Ollama / Llama 3.2
-      ↓
-Grounded Answer
-      ↓
-Source Metadata from Retrieved Chunks
-      ↓
-Streamlit UI
+Sheet: Regional Sales
+Region: South
+Revenue: 4.2
+Target: 4.0
+Customers: 1500
 ```
 
----
+Metadata:
 
-# 6. Document Representation
-
-All supported document formats are normalized into a common representation:
-
-```python
-@dataclass
-class DocumentChunk:
-    text: str
-    metadata: Dict
+```text
+file_type: excel
+sheet: Regional Sales
+row: 3
 ```
 
-This allows the downstream embedding, vector storage, retrieval, and generation layers to remain independent of the original document format.
+### CSV
 
----
+CSV rows are converted into text chunks with row metadata.
 
-# 7. Document Parsing
-
-## Excel
-
-Excel files are parsed sheet by sheet.
-
-Each data row becomes a retrieval chunk.
-
-Example metadata:
-
-```python
-{
-    "source": "data/sales_q1.xlsx",
-    "file_type": "excel",
-    "sheet": "Regional Sales",
-    "row": 3
-}
-```
-
-This allows the application to identify the original worksheet and row associated with retrieved information.
-
-## CSV
-
-CSV files are parsed row by row.
-
-Example metadata:
-
-```python
-{
-    "source": "data/customer_sales.csv",
-    "file_type": "csv",
-    "row": 2
-}
-```
-
-## PowerPoint
-
-PowerPoint files are parsed slide by slide.
+### PowerPoint
 
 The parser extracts:
 
-* Slide text
-* PowerPoint tables
-* Speaker notes when available
-* Slide title metadata
-
-Example metadata:
-
-```python
-{
-    "source": "data/q1_business_review.pptx",
-    "file_type": "pptx",
-    "slide": 6,
-    "title": "South Region"
-}
-```
+- slide text
+- PowerPoint tables
+- speaker notes
+- slide title
+- slide number
 
 ---
 
-# 8. PowerPoint Limitation
-
-The current PowerPoint implementation supports `.pptx`.
-
-It extracts slide text and PowerPoint table content.
-
-It does **not** currently perform:
-
-* OCR on scanned slides
-* Image understanding
-* Chart-data extraction
-* SmartArt extraction
-* Legacy `.ppt` parsing
-
-The application therefore exposes `.pptx` in the Streamlit upload interface.
-
-These capabilities could be added in a production implementation using OCR, image-capable models, or additional document conversion tooling.
-
----
-
-# 9. Embeddings
+## 7. Embeddings
 
 The project uses:
 
 ```text
+SentenceTransformer
 all-MiniLM-L6-v2
 ```
-
-from Sentence Transformers.
 
 Embedding dimension:
 
@@ -323,24 +219,13 @@ Embedding dimension:
 384
 ```
 
-The same embedding model is used for:
-
-* Document embeddings during indexing
-* Query embeddings during retrieval
-
-This ensures that documents and queries exist in the same vector space.
+The same embedding model is used for document chunks and user queries.
 
 ---
 
-# 10. Vector Database
+## 8. Vector Database
 
-The project uses:
-
-```text
-ChromaDB
-```
-
-with persistent local storage.
+The project uses persistent local ChromaDB.
 
 Collection:
 
@@ -348,20 +233,31 @@ Collection:
 acme_documents
 ```
 
-Each chunk is stored with:
+Storage:
 
-* Chunk ID
-* Original text
-* Embedding
-* Metadata
+```text
+./chroma_db
+```
 
-The chunk ID includes a source-derived prefix to avoid collisions between different documents.
+Each indexed chunk stores:
+
+- original text
+- embedding
+- source metadata
+
+The vector database is local and is excluded from Git.
 
 ---
 
-# 11. Retrieval
+## 9. Retrieval
 
-The retriever performs vector similarity search using the query embedding.
+The retriever:
+
+1. embeds the user question
+2. performs semantic search in ChromaDB
+3. retrieves the top candidates
+4. applies a distance threshold
+5. returns only sufficiently relevant chunks
 
 Current configuration:
 
@@ -370,301 +266,231 @@ Top-K = 3
 Maximum distance = 0.8
 ```
 
-The retriever first obtains up to three candidates from ChromaDB and then removes candidates whose distance exceeds the configured threshold.
-
-The `0.8` threshold was selected empirically using the project's evaluation dataset.
-
-It is **not intended to be a universal threshold**. A production system should tune retrieval parameters using a larger representative evaluation dataset.
+The threshold was selected using the project's small evaluation dataset.
 
 ---
 
-# 12. Retrieval Threshold Experiment
+## 10. Grounded Generation
 
-Two distance thresholds were evaluated.
-
-| Metric             | Threshold 0.9 | Threshold 0.8 |
-| ------------------ | ------------: | ------------: |
-| Context Precision  |         0.528 |     **0.667** |
-| Context Recall     |         1.000 |     **1.000** |
-| Context Relevance  |         0.537 |     **0.566** |
-| Answer Correctness |         1.000 |     **1.000** |
-| Faithfulness       |        1.000* |     **1.000** |
-| Answer Relevancy   |        0.333* |     **0.500** |
-
-* Results can vary because the faithfulness and answer-relevancy metrics use an LLM judge.
-
-The stricter `0.8` threshold reduced irrelevant retrieved chunks while maintaining the required evidence on the current evaluation set.
-
----
-
-# 13. LLM Generation
-
-The project uses:
+The application uses:
 
 ```text
 Ollama
-Llama 3.2
+└── llama3.2:latest
 ```
 
-The model runs locally.
+The generation prompt explicitly instructs the model to:
 
-The generation prompt instructs the model to:
+- use only retrieved context
+- avoid outside knowledge
+- avoid assumptions
+- avoid inventing facts
+- provide concise answers
+- avoid exposing internal source labels
 
-* Use only retrieved context
-* Avoid outside knowledge
-* Avoid assumptions
-* Avoid invented facts
-* Give concise answers
-* Avoid source-number labels
-* Return a fixed fallback when sufficient evidence is unavailable
-
-The fallback response is:
+If the retrieved context is insufficient, the required fallback is:
 
 ```text
 I cannot answer this based on the provided documents.
 ```
 
----
-
-# 14. Why Ollama?
-
-Ollama was selected for the prototype because it provides:
-
-* Local inference
-* No API key requirement
-* No hosted inference cost
-* A simple development setup
-* A privacy-friendly local execution path
-
-The generation layer is isolated in:
-
-```text
-pipeline/generation.py
-```
-
-Therefore, the LLM provider can be changed later without redesigning the ingestion, embedding, vector-store, or retrieval layers.
-
-For production, the model provider could be evaluated based on:
-
-* Latency
-* Throughput
-* Cost
-* Model quality
-* Privacy
-* Deployment requirements
-
-Possible future providers include hosted or self-hosted inference services.
+The application also uses this fallback when LLM inference fails.
 
 ---
 
-# 15. Source Traceability
+## 11. Source Traceability
 
-Source metadata is preserved during ingestion and stored with each vector.
+Sources are derived from document metadata rather than generated by the LLM.
 
-After retrieval, the Python application builds source information from the retrieved chunks.
-
-For example:
+Examples:
 
 ```text
-data/q1_business_review.pptx
-Slide 6
-South Region
+q1_business_review.pptx — Slide 6 — South Region
+sales_q1.xlsx — Sheet: Regional Sales — Row: 3
 ```
 
-or:
-
-```text
-data/sales_q1.xlsx
-Sheet: Regional Sales
-Row: 3
-```
-
-This provides traceability from the generated answer back to the retrieved document locations.
-
-The LLM itself does not decide which source numbers to display. The application derives source metadata from the retrieved chunks.
+This provides traceability from the generated answer back to the source document location.
 
 ---
 
-# 16. Multi-Document QA
+## 12. Multi-Document Question Answering
 
-The vector store contains chunks from multiple uploaded documents.
+Multiple files can be uploaded and indexed together.
 
-A single query can therefore retrieve evidence from multiple sources.
-
-For example:
-
-```text
-Question:
-What was the South region revenue and how much of the target did it achieve?
-```
-
-The system can retrieve:
-
-```text
-PowerPoint:
-South Region
-Revenue = $4.2M
-Target Achievement = 105%
-
-Excel:
-Regional Sales
-South
-Revenue = 4.2
-Target = 4.0
-```
-
-The LLM then generates a grounded answer using the combined retrieved context.
-
----
-
-# 17. No-Answer Behavior
-
-The system is designed to avoid fabricating information when evidence is insufficient.
+A question can retrieve evidence from different formats/documents.
 
 Example:
 
 ```text
 Question:
-What was the employee attrition rate?
+What was the South region revenue and how much of the target did it achieve?
+
+Retrieved evidence:
+- PowerPoint: South Region, Slide 6
+- Excel: Regional Sales, Row 3
 
 Answer:
-I cannot answer this based on the provided documents.
+The South region revenue was $4.2M. The target achievement was 105%.
 ```
-
-The system also returns no sources for a rejected/no-answer response.
-
-This provides a basic grounding safeguard against unsupported answers.
 
 ---
 
-# 18. Incremental Indexing
+## 13. Incremental Indexing
 
-The project avoids unnecessarily re-embedding unchanged documents.
+The document tracker uses SHA-256 hashes.
 
-Each document is assigned a SHA-256 hash.
-
-The document tracker stores:
+Conceptually:
 
 ```text
-file path → SHA-256 hash
+Upload document
+      │
+      ▼
+Calculate SHA-256
+      │
+      ├── Same hash ──► Skip indexing
+      │
+      └── Changed hash
+               │
+               ▼
+        Delete old chunks
+               │
+               ▼
+          Parse document
+               │
+               ▼
+       Generate embeddings
+               │
+               ▼
+          Store chunks
+               │
+               ▼
+          Update hash
 ```
 
-When a document is processed:
-
-### Unchanged document
-
-```text
-Current hash == Stored hash
-        ↓
-Skip indexing
-```
-
-### Changed document
-
-```text
-Current hash != Stored hash
-        ↓
-Delete old chunks
-        ↓
-Parse new document
-        ↓
-Generate new embeddings
-        ↓
-Store new chunks
-        ↓
-Update hash
-```
-
-This avoids unnecessary embedding computation and prevents stale document chunks from remaining in the vector store.
+This avoids unnecessary embedding work and prevents stale chunks from remaining in the vector store.
 
 ---
 
-# 19. Streamlit UI
+## 14. Streamlit UI
 
-The application provides:
+The UI provides:
 
 ### Upload Documents
 
-Supported UI formats:
+Supported:
 
 ```text
 .xlsx
 .xls
 .csv
+.ppt
 .pptx
 ```
 
 Multiple documents can be uploaded together.
 
-### Index Documents
+### Index Uploaded Documents
 
-Uploaded documents are saved to the local `data/` directory and passed through the indexing pipeline.
+Uploaded files are stored under the local `data/` directory and passed through the indexing pipeline.
 
 ### Ask a Question
 
-Users can enter natural-language questions and receive:
+Users receive:
 
-* Generated answer
-* Supporting source locations when available
-
----
-
-# 20. Error Handling
-
-The indexing pipeline handles common errors including:
-
-* Missing files
-* Unsupported file formats
-* Invalid/corrupt documents
-* Empty extracted content
-* General indexing failures
-
-The LLM generation layer also catches inference failures and returns the standard no-answer response.
+- generated answer
+- supporting source locations when available
 
 ---
 
-# 21. Observability
+## 15. Security
 
-The application currently logs:
+The current prototype includes basic security controls.
 
-* Number of extracted chunks
-* Embedding shape
-* Number of stored documents
-* Retrieval time
-* Generation time
-* Indexing status
-* Whether documents were skipped or re-indexed
-* Indexing errors
+### Implemented
+
+- upload extension allow-list
+- `.ppt` and `.pptx` support restricted to the supported formats
+- maximum upload size of **200 MB per file**
+- filename normalization using `os.path.basename()`
+- uploaded files stored under `data/`
+- local LLM inference through Ollama
+- no hard-coded API keys
+- `.env` excluded from Git
+- uploaded `data/` excluded from Git
+- ChromaDB excluded from Git
+- Streamlit configuration excluded from Git
+
+The filename handling prevents an uploaded filename from directly escaping the intended `data/` directory.
+
+### Production Security Considerations
+
+The project is not intended to be production-secure. A production deployment should additionally consider:
+
+- authentication
+- authorization
+- multi-user / tenant isolation
+- MIME and content validation
+- malware scanning
+- isolated upload storage
+- encrypted storage
+- secure model endpoints
+- rate limiting
+- audit logging
+- stronger prompt-injection defenses
+- output validation
+
+Retrieved documents should be treated as untrusted content. Production systems should ensure document text cannot override system instructions or trigger unauthorized actions.
+
+---
+
+## 16. Error Handling
+
+The ingestion/indexing pipeline handles common failures such as:
+
+- missing files
+- unsupported formats
+- invalid/corrupt documents
+- empty extracted content
+- indexing failures
+
+The generation layer catches LLM inference failures and returns the standard no-answer response.
+
+---
+
+## 17. Observability
+
+The application currently logs useful development/runtime information including:
+
+- extracted chunk counts
+- embedding shape
+- stored document counts
+- retrieval time
+- generation time
+- indexing status
+- skipped vs re-indexed documents
+- indexing errors
 
 Example:
 
 ```text
-Retrieval time: 0.036 seconds
-Generation time: 3.049 seconds
+Retrieval time: 0.160 seconds
+Generation time: 16.879 seconds
 ```
 
-Local LLM generation latency can vary significantly, particularly during initial model loading/warm-up.
+Local LLM latency can vary depending on model loading and hardware.
 
-For production, additional metrics could include:
-
-* Query latency percentiles
-* Token usage
-* Model errors
-* Retrieval hit rate
-* User feedback
-* Evaluation trends
-* Cost per request
+For production, additional observability could include latency percentiles, token usage, retrieval hit rate, model errors, user feedback, evaluation trends, and cost/request.
 
 ---
 
-# 22. Testing
+## 18. Testing
 
-The project contains functional RAG tests covering:
+Functional RAG tests cover:
 
 1. South region revenue
 2. Highest-revenue product
 3. Customer growth
-4. Multi-document South region revenue + target question
+4. Multi-document South region revenue + target
 5. Missing employee attrition information
 6. Missing profit-margin information
 
@@ -674,316 +500,217 @@ Latest result:
 TEST SUMMARY: 6/6 tests passed
 ```
 
-The tests verify both answer content and source/no-answer behavior.
+The tests verify answer behavior as well as source and no-answer behavior.
+
+Run:
+
+```powershell
+python -m tests.test_rag
+```
 
 ---
 
-# 23. RAG Evaluation
+## 19. RAG Evaluation
 
-The project contains a separate evaluation dataset:
+The project includes:
 
 ```text
 evaluation/eval_dataset.json
-```
-
-and evaluation script:
-
-```text
 evaluation/evaluate_rag.py
 ```
 
-The current evaluation measures:
+The custom evaluation framework measures:
 
-* Answer Correctness
-* Context Precision
-* Context Recall
-* Context Relevance
-* Faithfulness
-* Answer Relevancy
+- Answer Correctness
+- Context Precision
+- Context Recall
+- Context Relevance
+- Faithfulness
+- Answer Relevancy
 
-The evaluation is a **custom lightweight evaluation framework**, not a full RAGAS implementation.
+This is a **custom lightweight evaluation framework**, not a RAGAS implementation.
 
-## Evaluation methodology
+### Evaluation methodology
 
-### Answer Correctness
+**Answer Correctness**
 
-A deterministic dataset-based check verifies whether the expected answer content appears in the generated answer.
+Checks generated answers against expected answer content.
 
-For unanswerable questions, correctness checks whether the expected fallback response is returned.
+**Context Precision**
 
-### Context Precision
+Measures how much of the retrieved context corresponds to acceptable evidence sources.
 
-Measures the proportion of retrieved chunks that match the acceptable source locations defined in the evaluation dataset.
+**Context Recall**
 
-### Context Recall
+Measures whether expected evidence sources were retrieved.
 
-Measures whether the expected evidence sources were successfully retrieved.
+**Context Relevance**
 
-### Context Relevance
+Uses semantic similarity between the question and retrieved chunks as a project-specific relevance proxy.
 
-Uses cosine similarity between the question embedding and retrieved chunk embeddings as a semantic relevance proxy.
+**Faithfulness**
 
-This is a project-specific proxy rather than the canonical RAGAS implementation.
+Uses the local Llama 3.2 model as an LLM judge to assess whether the answer is supported by retrieved context.
 
-### Faithfulness
+**Answer Relevancy**
 
-Uses the local Llama 3.2 model as an LLM judge to determine whether the generated answer is supported by the retrieved context.
+Uses the local Llama 3.2 model as an LLM judge to assess whether the answer addresses the question.
 
-### Answer Relevancy
+LLM-judge metrics can vary and should not be treated as absolute ground truth.
 
-Uses the local Llama 3.2 model as an LLM judge to determine whether the answer appropriately addresses the question.
+Run:
 
-Because the judge is itself an LLM, these scores can vary and should not be treated as absolute ground truth.
+```powershell
+python -m evaluation.evaluate_rag
+```
 
 ---
 
-# 24. Final Evaluation Results
+## 20. Evaluation Results
 
-Using the final retrieval configuration:
+Final retrieval configuration:
 
 ```text
 Top-K = 3
 Maximum distance = 0.8
 ```
 
-the latest evaluation produced:
+Latest evaluation averages:
 
 ```text
-Average Answer Correctness: 1.000
-Average Context Precision: 0.667
-Average Context Recall:    1.000
-Average Context Relevance: 0.566
-Average Faithfulness:      1.000
-Average Answer Relevancy:  0.500
+Answer Correctness : 1.000
+Context Precision  : 0.667
+Context Recall     : 1.000
+Context Relevance  : 0.566
+Faithfulness       : 1.000
+Answer Relevancy   : 0.500
 ```
 
-These results are based on the project's small six-question evaluation dataset and should not be interpreted as production-level benchmark results.
-
-The strongest observations are:
-
-* Expected answers were correct on the evaluation set.
-* Required evidence was successfully retrieved.
-* The stricter retrieval threshold improved context precision compared with `0.9`.
-* Generated answers were judged faithful to the retrieved context.
-* Answer-relevancy scoring is more variable for extremely short answers such as `"Laptop."`.
+These results are based on a small six-question evaluation dataset and should not be interpreted as production benchmark results.
 
 ---
 
-# 25. Security Considerations
-
-The prototype is designed with basic security awareness but is not production-ready.
-
-Current considerations include:
-
-* Local LLM inference
-* No hard-coded API keys
-* `.env` excluded from Git
-* Uploaded filenames sanitized using the base filename
-* Supported upload extensions restricted by the UI
-* Local document and vector-store processing
-
-For production deployment, additional controls would be required:
-
-* Authentication
-* Authorization
-* Tenant isolation
-* MIME/content validation
-* Malware scanning
-* Isolated upload storage
-* Internal document identifiers
-* Encrypted storage
-* Secure model endpoints
-* Rate limiting
-* Audit logging
-* Stronger prompt-injection defenses
-* Output validation
-
-Retrieved documents should be treated as untrusted content. A production system should prevent document text from overriding system instructions or causing unauthorized tool actions.
-
----
-
-# 26. Data Privacy
-
-The prototype can operate entirely locally:
-
-```text
-Documents
-   ↓
-Local parsing
-   ↓
-Local embeddings
-   ↓
-Local ChromaDB
-   ↓
-Local Ollama model
-```
-
-This provides a useful privacy characteristic for development and interview demonstrations.
-
-Production deployments would require organization-specific data-governance and access-control policies.
-
----
-
-# 27. Cost Considerations
-
-The prototype uses:
-
-* Local Sentence Transformer embeddings
-* Local ChromaDB
-* Local Ollama inference
-
-Therefore, there are no per-request hosted embedding or LLM API charges during local execution.
-
-Production cost would depend on:
-
-* Embedding infrastructure
-* LLM infrastructure
-* Storage
-* Vector database
-* Compute
-* Monitoring
-* Network traffic
-* Number of queries
-* Model size
-
----
-
-# 28. Current Limitations
-
-The current prototype intentionally has several limitations.
+## 21. Known Limitations
 
 ### Document extraction
 
-PowerPoint image content, scanned documents, chart data, and SmartArt are not extracted.
+Current PowerPoint extraction does not process:
 
-### Legacy PowerPoint
-
-The supported PowerPoint workflow is `.pptx`.
+- images
+- scanned text
+- chart data
+- SmartArt
 
 ### Chunking
 
-The current design uses format-aware row/slide chunks rather than a sophisticated semantic chunking strategy.
+The current design uses format-aware row/slide chunks rather than advanced semantic chunking.
 
 ### Retrieval
 
-The current retrieval layer uses a fixed Top-K and distance threshold.
-
-The threshold was tuned on a small evaluation dataset and would require further tuning for production.
+Retrieval currently uses a fixed Top-K and distance threshold.
 
 ### Evaluation
 
 The evaluation dataset contains only six questions.
 
-The evaluation metrics are custom lightweight implementations rather than a full standardized RAG evaluation framework.
-
 ### LLM
 
-The prototype uses a local Llama 3.2 model through Ollama.
-
-Production deployment may require a different inference architecture depending on latency, throughput, quality, and infrastructure requirements.
+The prototype uses local Llama 3.2 through Ollama. Production inference may require a different architecture depending on latency, throughput, quality, and infrastructure.
 
 ### Security
 
-The application is suitable as an interview/demo prototype but requires additional production security controls.
+The application is an interview/demo prototype and does not implement the full security controls required for a production multi-user system.
 
 ---
 
-# 29. Potential Production Improvements
+## 22. Future Production Improvements
 
-Future improvements could include:
+Potential improvements include:
 
 ### Retrieval
 
-* Hybrid keyword + vector retrieval
-* Reranking
-* Query expansion
-* Better metadata filtering
-* Larger evaluation datasets
-* Retrieval parameter optimization
+- hybrid keyword + vector search
+- reranking
+- query expansion
+- better metadata filtering
+- larger evaluation datasets
+- retrieval parameter optimization
 
-### Document processing
+### Document Processing
 
-* OCR
-* Image extraction
-* Chart understanding
-* Semantic chunking
-* More document formats
-* Better table normalization
+- OCR
+- image understanding
+- chart extraction
+- semantic chunking
+- additional document formats
+- improved table normalization
 
 ### Generation
 
-* Hosted or optimized inference
-* Streaming responses
-* Structured outputs
-* Provider abstraction
-* Response validation
+- hosted or optimized inference
+- streaming responses
+- structured outputs
+- model-provider abstraction
+- response validation
 
 ### Evaluation
 
-* Larger golden datasets
-* Continuous evaluation
-* Automated regression evaluation
-* More robust LLM-as-a-judge methodology
-* Standardized RAG evaluation frameworks where appropriate
+- larger golden datasets
+- continuous evaluation
+- automated regression evaluation
+- stronger LLM-as-a-judge methodology
+- standardized RAG evaluation frameworks where appropriate
 
-### Production architecture
+### Production Architecture
 
 ```text
 User
- ↓
+  ↓
 Authentication
- ↓
+  ↓
 API Layer
- ↓
+  ↓
 Document Storage
- ↓
+  ↓
 Async Ingestion
- ↓
+  ↓
 Embedding Service
- ↓
+  ↓
 Vector Database
- ↓
+  ↓
 Retriever / Reranker
- ↓
+  ↓
 LLM Service
- ↓
+  ↓
 Response Validation
- ↓
+  ↓
 User
 ```
 
 ---
 
-# 30. Installation
+## 23. Installation
 
-Create and activate a Python virtual environment.
-
-Example:
+Create a virtual environment:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-Install the required packages.
+Install dependencies:
 
-The project uses a CPU PyTorch build.
-
-For the CPU PyTorch installation, use the appropriate PyTorch CPU package index if required by the environment.
-
-Then install the remaining dependencies from:
-
-```text
-requirements.txt
+```powershell
+pip install -r requirements.txt
 ```
+
+The project is currently configured for CPU-based PyTorch.
 
 ---
 
-# 31. Ollama Setup
+## 24. Ollama Setup
 
-Install and start Ollama.
-
-Verify that the required model is available:
+Install Ollama and make sure the required model is available:
 
 ```powershell
 ollama list
@@ -995,7 +722,7 @@ The project currently uses:
 llama3.2:latest
 ```
 
-Start the Ollama server if required:
+If required, start the Ollama server:
 
 ```powershell
 ollama serve
@@ -1003,7 +730,7 @@ ollama serve
 
 ---
 
-# 32. Initialize Document Tracker
+## 25. Initialize Document Tracker
 
 Run:
 
@@ -1011,11 +738,9 @@ Run:
 python -m scripts.initialize_tracker
 ```
 
-This initializes the document-tracking state used for incremental indexing.
-
 ---
 
-# 33. Run the Application
+## 26. Run the Application
 
 Start Streamlit:
 
@@ -1023,145 +748,81 @@ Start Streamlit:
 streamlit run app.py
 ```
 
-The application provides the upload and question-answering interface.
+The application provides:
+
+1. document upload
+2. document indexing
+3. natural-language question answering
+4. source traceability
+
+The Streamlit configuration limits each uploaded file to 200 MB.
 
 ---
 
-# 34. Run Functional Tests
+## 27. Summary
 
-Run:
-
-```powershell
-python -m tests.test_rag
-```
-
-Expected result:
+This project demonstrates an end-to-end RAG pipeline:
 
 ```text
-TEST SUMMARY: 6/6 tests passed
+Multi-format documents
+        ↓
+Format-specific parsing
+        ↓
+Common DocumentChunk representation
+        ↓
+Metadata-aware indexing
+        ↓
+SentenceTransformer embeddings
+        ↓
+Persistent ChromaDB
+        ↓
+Top-K semantic retrieval
+        ↓
+Distance threshold filtering
+        ↓
+Grounded Llama 3.2 generation
+        ↓
+Answer + source traceability
 ```
 
----
+Key engineering decisions:
 
-# 35. Run RAG Evaluation
+- modular ingestion by file type
+- common chunk schema across formats
+- metadata preserved for traceability
+- persistent vector storage
+- incremental indexing using SHA-256
+- explicit retrieval threshold
+- grounded generation with a deterministic no-answer fallback
+- local LLM inference using Ollama
+- functional testing and custom RAG evaluation
+- basic upload and repository security controls
 
-Run:
+### Current implementation status
 
-```powershell
-python -m evaluation.evaluate_rag
-```
+**Completed**
 
-The evaluation script reports:
+- Excel `.xlsx`
+- Legacy Excel `.xls`
+- CSV
+- PowerPoint `.pptx`
+- Legacy PowerPoint `.ppt`
+- common document representation
+- metadata-aware chunks
+- embeddings
+- persistent ChromaDB
+- semantic retrieval
+- retrieval threshold
+- local Llama 3.2 generation
+- grounded answers
+- no-answer behavior
+- multi-document QA
+- source traceability
+- SHA-256 incremental indexing
+- changed-document replacement
+- Streamlit UI
+- upload size and filename protections
+- functional tests
+- custom RAG evaluation
 
-```text
-Average Answer Correctness
-Average Context Precision
-Average Context Recall
-Average Context Relevance
-Average Faithfulness
-Average Answer Relevancy
-```
-
----
-
-# 36. Design Principles
-
-The project follows several practical design principles:
-
-### Separation of concerns
-
-Document parsing, embeddings, vector storage, retrieval, generation, indexing, and UI are separated into different modules.
-
-### Traceability
-
-Metadata is retained from the original document through retrieval and displayed with the answer.
-
-### Incremental processing
-
-Unchanged documents are not re-embedded.
-
-### Grounded generation
-
-The LLM is instructed to use only retrieved context.
-
-### Explicit uncertainty
-
-The system returns a fixed no-answer response when sufficient evidence is unavailable.
-
-### Testability
-
-Core functionality can be tested independently from the Streamlit UI.
-
-### Replaceable components
-
-The embedding model, vector store, and LLM generation layers are isolated so that components can be replaced as requirements evolve.
-
----
-
-# 37. Project Status
-
-## Completed
-
-* Multi-format ingestion
-* Excel parsing
-* CSV parsing
-* PowerPoint parsing
-* Common document representation
-* Metadata preservation
-* Embedding generation
-* Persistent ChromaDB storage
-* Similarity retrieval
-* Retrieval threshold tuning
-* Local LLM generation
-* Grounded responses
-* No-answer handling
-* Multi-document QA
-* Source traceability
-* Incremental indexing
-* Changed-document replacement
-* Streamlit UI
-* Error handling
-* Functional testing
-* RAG evaluation
-* Security review
-* Documentation
-
-## Current Prototype Status
-
-**Interview/demo ready.**
-
-The system demonstrates the complete RAG lifecycle:
-
-```text
-Ingest
-  ↓
-Parse
-  ↓
-Normalize
-  ↓
-Embed
-  ↓
-Store
-  ↓
-Retrieve
-  ↓
-Generate
-  ↓
-Trace Sources
-  ↓
-Evaluate
-```
-
-It should be presented as an **interview-ready prototype rather than a production-grade enterprise RAG platform**.
-
----
-
-# 38. Interview Summary
-
-A concise way to describe the project:
-
-> I built a multi-format RAG document chatbot for a retail business scenario. It accepts Excel, CSV, and PowerPoint documents, converts them into a common metadata-aware chunk representation, generates embeddings using Sentence Transformers, and stores them in ChromaDB. For a user query, the system generates a query embedding, retrieves relevant chunks using similarity search with a tuned distance threshold, and passes the retrieved context to a locally hosted Llama 3.2 model through Ollama. The model is explicitly constrained to answer only from the retrieved documents, and the application derives source references from the retrieved metadata so users can trace answers back to the original slide, sheet, or row.
->
-> I also implemented SHA-256 based incremental indexing so unchanged documents are skipped and modified documents have their old chunks replaced. I created functional tests and a custom RAG evaluation suite covering answer correctness, context precision, context recall, context relevance, faithfulness, and answer relevancy. On the current six-question evaluation set, the system achieved 1.0 answer correctness, 1.0 context recall, and 1.0 faithfulness, with context precision of 0.667 after tuning the retrieval threshold from 0.9 to 0.8.
->
-> The current implementation is an interview/demo prototype. For production, I would add stronger authentication and authorization, tenant isolation, OCR and richer document extraction, hybrid retrieval and reranking, larger evaluation datasets, stronger prompt-injection defenses, monitoring, and a production-grade model-serving architecture.
+**Current functional test result: 6/6 passed.**
